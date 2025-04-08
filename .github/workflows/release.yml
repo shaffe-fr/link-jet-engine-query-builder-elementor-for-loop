@@ -1,0 +1,41 @@
+name: Create WordPress Plugin Release
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create plugin artifact
+        run: |
+          PLUGIN_NAME="link-jet-engine-query-builder-elementor-for-loop"
+          # Create a temporary directory with plugin name
+          mkdir -p "$PLUGIN_NAME"
+          # Copy all files except .git, .github, and other development files
+          rsync -av \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.gitignore' \
+            --exclude='*.yml' \
+            --exclude='*.md' \
+            --exclude='.DS_Store' \
+            . "$PLUGIN_NAME/"
+          # Create the ZIP file
+          zip -r "$PLUGIN_NAME.zip" "$PLUGIN_NAME"
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: link-jet-engine-query-builder-elementor-for-loop.zip
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
